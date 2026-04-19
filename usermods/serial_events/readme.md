@@ -32,13 +32,115 @@ EV|1713545140|PST|12
 EV|1713545145|BTN|1|S
 ```
 
-Button action codes:
+## Event Reference
+
+The event format is:
+
+```txt
+EV|<timestamp>|<code>|<value1>[|<value2>]
+```
+
+Field meanings:
+
+- `EV`: fixed event prefix
+- `<timestamp>`: Unix timestamp in seconds
+- `<code>`: event type code
+- `<value1>`: primary event value
+- `<value2>`: optional secondary value, currently used only for button actions
+
+### Event Codes
+
+- `ONL|<0|1>`
+  - `1` = WLED is connected to the network
+  - `0` = WLED is not connected to the network
+
+- `PWR|<0|1>`
+  - `1` = logical power on
+  - `0` = logical power off
+  - This is derived from the global brightness state used by WLED
+
+- `BRI|<0..255>`
+  - Global brightness value
+
+- `FX|<effectId>`
+  - Current effect ID
+
+- `PAL|<paletteId>`
+  - Current palette ID
+
+- `SPD|<0..255>`
+  - Current effect speed
+
+- `INT|<0..255>`
+  - Current effect intensity
+
+- `PST|<presetId>`
+  - Current preset ID
+  - Only emitted for non-zero preset IDs
+
+- `BTN|<buttonId>|<action>`
+  - `<buttonId>` is the WLED button index
+  - `<action>` is one of the button action codes listed below
+
+### Button ID Meaning
+
+`buttonId` is the zero-based WLED button index:
+
+- `0` = first configured button
+- `1` = second configured button
+- `2` = third configured button
+- `3` = fourth configured button
+
+The actual GPIO assigned to each button depends on the hardware configuration in WLED.
+
+### Button Action Codes
 
 - `S` = short press
 - `L` = long press
 - `D` = double press
 - `ON` = switch on
 - `OFF` = switch off
+
+`ON` and `OFF` are used for switch-style inputs and PIR-style motion inputs.
+
+## Resolving IDs To Human-Readable Names
+
+Some event values are numeric IDs by design to keep the serial payload compact.
+
+### Effect IDs (`FX`)
+
+Resolve effect IDs through the WLED JSON API:
+
+- `GET /json/effects`
+
+This returns the effect-name array in ID order, so:
+
+- `FX|23` means item `23` from `/json/effects`
+
+### Palette IDs (`PAL`)
+
+Resolve palette IDs through the WLED JSON API:
+
+- `GET /json/palx`
+
+This returns palette data in ID order, so:
+
+- `PAL|5` means item `5` from `/json/palx`
+
+Depending on your setup, palette names are also available from:
+
+- `GET /json`
+
+under the `palettes` field.
+
+### Preset IDs (`PST`)
+
+Preset IDs are the normal WLED preset slot IDs from the presets system.
+
+- `PST|12` means preset slot `12`
+
+The human-readable preset name is whatever you saved into that preset slot in WLED.
+You can inspect presets through the presets UI or by reading the preset storage used by WLED.
 
 If WLED does not yet have a valid time source, the timestamp is `0`.
 

@@ -105,6 +105,47 @@ EV|1713545140|PST|12
 EV|1713545145|BTN|1|S
 ```
 
+Field meanings:
+
+- `EV`: fixed event prefix
+- `<timestamp>`: Unix timestamp in seconds
+- `<code>`: event type code
+- `<value1>`: primary event value
+- `<value2>`: optional secondary value, currently used only by button events
+
+Event code reference:
+
+- `ONL|<0|1>`: network online/offline state
+- `PWR|<0|1>`: logical power state
+- `BRI|<0..255>`: global brightness
+- `FX|<effectId>`: current effect ID
+- `PAL|<paletteId>`: current palette ID
+- `SPD|<0..255>`: current effect speed
+- `INT|<0..255>`: current effect intensity
+- `PST|<presetId>`: current preset ID
+- `BTN|<buttonId>|<action>`: button event
+
+Button ID reference:
+
+- `0` = first configured WLED button
+- `1` = second configured WLED button
+- `2` = third configured WLED button
+- `3` = fourth configured WLED button
+
+Button action codes:
+
+- `S` = short press
+- `L` = long press
+- `D` = double press
+- `ON` = switch on
+- `OFF` = switch off
+
+ID resolution:
+
+- Effect names: `GET /json/effects`, then use the event's `FX` value as the zero-based array index
+- Palette names/data: `GET /json/palx`, then use the event's `PAL` value as the zero-based array index
+- Preset IDs: standard WLED preset slot IDs from the presets system
+
 The usermod is enabled in `platformio_override.ini` for the local UART-focused environment:
 
 ```ini
