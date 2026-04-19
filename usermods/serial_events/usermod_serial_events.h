@@ -24,7 +24,8 @@ class SerialEventsUsermod : public Usermod {
       uint8_t type;
       uint8_t value1;
       uint8_t value2;
-      uint32_t ts;
+      uint32_t sec;
+      uint16_t ms;
     };
 
     static constexpr uint8_t QUEUE_SIZE = 16;
@@ -46,10 +47,27 @@ class SerialEventsUsermod : public Usermod {
     uint8_t queueHead = 0;
     uint8_t queueTail = 0;
 
-    uint32_t getEventTimestamp() const
+    void getEventTimestamp(uint32_t &sec, uint16_t &ms) const
     {
-      if (!includeTimestamp) return 0;
-      return (toki.getTimeSource() >= TOKI_TS_SEC) ? toki.second() : 0;
+      if (!includeTimestamp || toki.getTimeSource() < TOKI_TS_SEC) {
+        sec = 0;
+        ms = 0;
+        return;
+      }
+
+      Toki::Time t = toki.getTime();
+      sec = t.sec;
+      ms = t.ms;
+    }
+
+    void formatTimestamp(char* dest, size_t len, const EventRecord &event) const
+    {
+      if (event.sec == 0 && event.ms == 0) {
+        strlcpy(dest, "0", len);
+        return;
+      }
+
+      snprintf_P(dest, len, PSTR("%lu%03u"), event.sec, event.ms);
     }
 
     void captureState()
@@ -69,10 +87,14 @@ class SerialEventsUsermod : public Usermod {
     {
       if (!enabled || !serialCanTX) return;
 
+      uint32_t sec;
+      uint16_t ms;
+      getEventTimestamp(sec, ms);
+
       uint8_t next = (queueHead + 1) % QUEUE_SIZE;
       if (next == queueTail) return;
 
-      queue[queueHead] = {type, value1, value2, getEventTimestamp()};
+      queue[queueHead] = {type, value1, value2, sec, ms};
       queueHead = next;
     }
 
@@ -109,12 +131,14 @@ class SerialEventsUsermod : public Usermod {
       if (!enabled || !serialCanTX || queueHead == queueTail || !Serial) return;
 
       const EventRecord &event = queue[queueTail];
-      char line[48];
+      char ts[16];
+      char line[64];
+      formatTimestamp(ts, sizeof(ts), event);
 
       if (event.type == EVT_BUTTON) {
-        snprintf_P(line, sizeof(line), PSTR("EV|%lu|BTN|%u|%s"), event.ts, event.value1, buttonActionCode(event.value2));
+        snprintf_P(line, sizeof(line), PSTR("EV|%s|BTN|%u|%s"), ts, event.value1, buttonActionCode(event.value2));
       } else {
-        snprintf_P(line, sizeof(line), PSTR("EV|%lu|%s|%u"), event.ts, eventCode(event.type), event.value1);
+        snprintf_P(line, sizeof(line), PSTR("EV|%s|%s|%u"), ts, eventCode(event.type), event.value1);
       }
 
       Serial.println(line);

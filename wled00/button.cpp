@@ -17,6 +17,17 @@ static const char _mqtt_topic_button_ts[] PROGMEM = "%s/button_ts/%d";
 static const char _mqtt_topic_motion_ts[] PROGMEM = "%s/motion_ts/%d";
 static bool buttonBriDirection = false; // true: increase brightness, false: decrease brightness
 
+static void formatButtonTimestamp(char* dest, size_t len)
+{
+  if (toki.getTimeSource() < TOKI_TS_SEC) {
+    strlcpy(dest, "0", len);
+    return;
+  }
+
+  Toki::Time t = toki.getTime();
+  snprintf_P(dest, len, PSTR("%lu%03u"), t.sec, t.ms);
+}
+
 static const char* buttonActionToCode(uint8_t action)
 {
   switch (action) {
@@ -35,9 +46,10 @@ static void publishButtonTimestampedMqtt(uint8_t b, uint8_t action, bool isMotio
   if (!buttonPublishMqttTimestamp || !WLED_MQTT_CONNECTED) return;
 
   char topic[64];
-  char payload[20];
-  uint32_t ts = (toki.getTimeSource() >= TOKI_TS_SEC) ? toki.second() : 0;
-  snprintf_P(payload, sizeof(payload), PSTR("%lu|%s"), ts, buttonActionToCode(action));
+  char ts[16];
+  char payload[24];
+  formatButtonTimestamp(ts, sizeof(ts));
+  snprintf_P(payload, sizeof(payload), PSTR("%s|%s"), ts, buttonActionToCode(action));
   if (isMotion) sprintf_P(topic, _mqtt_topic_motion_ts, mqttDeviceTopic, (int)b);
   else sprintf_P(topic, _mqtt_topic_button_ts, mqttDeviceTopic, (int)b);
   mqtt->publish(topic, 0, false, payload);

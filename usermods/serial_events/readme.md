@@ -8,7 +8,7 @@ This usermod emits compact one-line event records over the WLED serial interface
 - Reports power, brightness, effect, palette, speed, intensity, and preset changes
 - Reports button events with button ID and action
 - Uses compact event lines designed for easy parsing in Node-RED
-- Optionally includes Unix timestamps from the WLED time source
+- Optionally includes Unix timestamps in milliseconds from the WLED time source
 
 ## Serial Format
 
@@ -21,15 +21,15 @@ EV|<timestamp>|<code>|<value1>[|<value2>]
 Examples:
 
 ```txt
-EV|1713545123|ONL|1
-EV|1713545128|PWR|1
-EV|1713545130|BRI|128
-EV|1713545135|FX|23
-EV|1713545136|PAL|5
-EV|1713545137|SPD|200
-EV|1713545138|INT|90
-EV|1713545140|PST|12
-EV|1713545145|BTN|1|S
+EV|1713545123123|ONL|1
+EV|1713545128456|PWR|1
+EV|1713545130789|BRI|128
+EV|1713545135123|FX|23
+EV|1713545136345|PAL|5
+EV|1713545137456|SPD|200
+EV|1713545138567|INT|90
+EV|1713545140123|PST|12
+EV|1713545145456|BTN|1|S
 ```
 
 ## Event Reference
@@ -43,7 +43,7 @@ EV|<timestamp>|<code>|<value1>[|<value2>]
 Field meanings:
 
 - `EV`: fixed event prefix
-- `<timestamp>`: Unix timestamp in seconds
+- `<timestamp>`: Unix timestamp in milliseconds
 - `<code>`: event type code
 - `<value1>`: primary event value
 - `<value2>`: optional secondary value, currently used only for button actions
