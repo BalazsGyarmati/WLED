@@ -34,6 +34,7 @@ The script can:
 
 - request the firmware version
 - request the current WLED millisecond timestamp
+- request a compact device info JSON snapshot
 - request JSON info/state
 - request LED data in JSON or binary form
 - send raw commands
@@ -212,6 +213,50 @@ Expected response:
 ```txt
 T|1713545145456
 ```
+
+### 2b. Read the compact device info JSON
+
+```sh
+python3 tools/wled_serial_test.py -p /dev/ttyUSB0 info --verbose
+```
+
+This uses the dedicated serial command `i`.
+
+The uppercase `I` command is already used by the stock Improv serial protocol, so the compact info JSON uses lowercase `i` to avoid breaking that existing interface.
+
+Example response:
+
+```json
+{
+  "ip": "192.168.1.42",
+  "device_id": "ABCDEF010203",
+  "name": "Kitchen Strip",
+  "hostname": "wled-kitchen",
+  "mac": "AB:CD:EF:01:02:03",
+  "mqtt_device_topic": "wled/kitchen",
+  "mqtt_group_topic": "wled/all",
+  "wifi_ssid": "MyWiFi",
+  "wifi_rssi": -58,
+  "wifi_connected": true,
+  "mqtt_connected": true,
+  "uptime_s": 12345
+}
+```
+
+Field meanings:
+
+- `ip`: current local IP address
+- `device_id`: uppercase MAC-derived device ID without separators
+- `name`: WLED device name
+- `hostname`: current mDNS/hostname value
+- `mac`: uppercase MAC address with `:` separators
+- `mqtt_device_topic`: configured MQTT device topic
+- `mqtt_group_topic`: configured MQTT group topic
+- `wifi_ssid`: current connected Wi-Fi SSID
+- `wifi_rssi`: current Wi-Fi RSSI in dBm
+- `wifi_connected`: whether Wi-Fi is currently connected
+- `mqtt_connected`: whether MQTT is currently connected
+- `uptime_s`: uptime in seconds
 
 ### 3. Read LED data as JSON
 

@@ -4,6 +4,7 @@
 Examples:
   python3 tools/wled_serial_test.py -p /dev/ttyACM0 version
   python3 tools/wled_serial_test.py -p /dev/ttyACM0 time
+  python3 tools/wled_serial_test.py -p /dev/ttyACM0 info --verbose
   python3 tools/wled_serial_test.py -p /dev/ttyACM0 json --verbose
   python3 tools/wled_serial_test.py -p /dev/ttyUSB0 led-json
   python3 tools/wled_serial_test.py -p /dev/ttyUSB0 led-bin --hex
@@ -50,6 +51,10 @@ def parse_args() -> argparse.Namespace:
 
     subparsers.add_parser("version", help="Send 'v' and print the WLED version response")
     subparsers.add_parser("time", help="Send 'T' and print the WLED millisecond timestamp response")
+    info_parser = subparsers.add_parser("info", help="Send 'i' and print the compact device info JSON")
+    info_parser.add_argument(
+        "--verbose", action="store_true", help="Pretty-print returned JSON if possible"
+    )
 
     json_parser = subparsers.add_parser("json", help="Request JSON state/info via {'v':true}")
     json_parser.add_argument(
@@ -228,6 +233,11 @@ def main() -> int:
         if args.command == "time":
             response = send_and_read(port, b"T", timeout=args.timeout, max_bytes=256)
             print_text_response(response)
+            return 0
+
+        if args.command == "info":
+            response = send_and_read(port, b"i", timeout=args.timeout, max_bytes=2048)
+            parse_json_response(response, args.verbose)
             return 0
 
         if args.command == "json":

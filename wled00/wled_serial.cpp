@@ -37,6 +37,35 @@ static void sendTimestamp()
   Serial.println(buffer);
 }
 
+static void sendInfoJson()
+{
+  if (!serialCanTX) return;
+
+  StaticJsonDocument<512> doc;
+  IPAddress ipAddress = Network.localIP();
+  String macAddress = WiFi.macAddress();
+  macAddress.toUpperCase();
+
+  String deviceId = macAddress;
+  deviceId.replace(":", "");
+
+  doc["ip"] = ipAddress.toString();
+  doc["device_id"] = deviceId;
+  doc["name"] = serverDescription;
+  doc["hostname"] = cmDNS;
+  doc["mac"] = macAddress;
+  doc["mqtt_device_topic"] = mqttDeviceTopic;
+  doc["mqtt_group_topic"] = mqttGroupTopic;
+  doc["wifi_ssid"] = WiFi.SSID();
+  doc["wifi_rssi"] = WiFi.RSSI();
+  doc["wifi_connected"] = (WiFi.status() == WL_CONNECTED);
+  doc["mqtt_connected"] = WLED_MQTT_CONNECTED;
+  doc["uptime_s"] = millis()/1000 + rolloverMillis*4294967;
+
+  serializeJson(doc, Serial);
+  Serial.println();
+}
+
 void updateBaudRate(uint32_t rate){
   unsigned rate100 = rate/100;
   if (rate100 == currentBaud || rate100 < 96) return;
@@ -101,6 +130,7 @@ void handleSerial()
         if      (next == 'A')  { state = AdaState::Header_d; }
         else if (next == 0xC9) { state = AdaState::TPM2_Header_Type; } //TPM2 start byte
         else if (next == 'I')  { handleImprovPacket(); return; }
+        else if (next == 'i')  { sendInfoJson(); }
         else if (next == 'T')  { sendTimestamp(); }
         else if (next == 'v')  { Serial.print("WLED"); Serial.write(' '); Serial.println(VERSION); }
         else if (next == 0xB0) { updateBaudRate( 115200); }
