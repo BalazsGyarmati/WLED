@@ -3,6 +3,7 @@
 
 Examples:
   python3 tools/wled_serial_test.py -p /dev/ttyACM0 version
+  python3 tools/wled_serial_test.py -p /dev/ttyACM0 time
   python3 tools/wled_serial_test.py -p /dev/ttyACM0 json --verbose
   python3 tools/wled_serial_test.py -p /dev/ttyUSB0 led-json
   python3 tools/wled_serial_test.py -p /dev/ttyUSB0 led-bin --hex
@@ -48,6 +49,7 @@ def parse_args() -> argparse.Namespace:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("version", help="Send 'v' and print the WLED version response")
+    subparsers.add_parser("time", help="Send 'T' and print the WLED millisecond timestamp response")
 
     json_parser = subparsers.add_parser("json", help="Request JSON state/info via {'v':true}")
     json_parser.add_argument(
@@ -220,6 +222,11 @@ def main() -> int:
     with SerialPort(args.port, args.baud) as port:
         if args.command == "version":
             response = send_and_read(port, b"v", timeout=args.timeout, max_bytes=256)
+            print_text_response(response)
+            return 0
+
+        if args.command == "time":
+            response = send_and_read(port, b"T", timeout=args.timeout, max_bytes=256)
             print_text_response(response)
             return 0
 

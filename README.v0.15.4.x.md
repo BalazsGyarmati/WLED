@@ -33,6 +33,7 @@ This helper script was added for serial interface testing from Linux. It makes i
 The script can:
 
 - request the firmware version
+- request the current WLED millisecond timestamp
 - request JSON info/state
 - request LED data in JSON or binary form
 - send raw commands
@@ -198,6 +199,18 @@ python3 tools/wled_serial_test.py -p /dev/ttyACM0 version
 
 ```sh
 python3 tools/wled_serial_test.py -p /dev/ttyUSB0 json --verbose
+```
+
+### 2a. Read the dedicated millisecond timestamp response
+
+```sh
+python3 tools/wled_serial_test.py -p /dev/ttyUSB0 time
+```
+
+Expected response:
+
+```txt
+T|1713545145456
 ```
 
 ### 3. Read LED data as JSON

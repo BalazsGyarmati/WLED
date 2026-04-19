@@ -23,6 +23,20 @@ uint16_t currentBaud = 1152; //default baudrate 115200 (divided by 100)
 bool continuousSendLED = false;
 uint32_t lastUpdate = 0;
 
+static void sendTimestamp()
+{
+  if (!serialCanTX) return;
+
+  char buffer[20];
+  if (toki.getTimeSource() < TOKI_TS_SEC) {
+    strlcpy(buffer, "T|0", sizeof(buffer));
+  } else {
+    Toki::Time t = toki.getTime();
+    snprintf_P(buffer, sizeof(buffer), PSTR("T|%lu%03u"), t.sec, t.ms);
+  }
+  Serial.println(buffer);
+}
+
 void updateBaudRate(uint32_t rate){
   unsigned rate100 = rate/100;
   if (rate100 == currentBaud || rate100 < 96) return;
@@ -87,6 +101,7 @@ void handleSerial()
         if      (next == 'A')  { state = AdaState::Header_d; }
         else if (next == 0xC9) { state = AdaState::TPM2_Header_Type; } //TPM2 start byte
         else if (next == 'I')  { handleImprovPacket(); return; }
+        else if (next == 'T')  { sendTimestamp(); }
         else if (next == 'v')  { Serial.print("WLED"); Serial.write(' '); Serial.println(VERSION); }
         else if (next == 0xB0) { updateBaudRate( 115200); }
         else if (next == 0xB1) { updateBaudRate( 230400); }
