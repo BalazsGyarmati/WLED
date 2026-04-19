@@ -146,10 +146,12 @@ If WLED does not yet have a valid time source, the timestamp is `0`.
 
 ## Configuration
 
-The usermod adds a `Serial Events` section to the Usermods settings/config:
+The usermod adds a `SerialEvents` section to the Usermods settings/config:
 
 - `enabled`: turns the usermod on or off
 - `timestamp`: includes Unix timestamps when enabled
+
+For backward compatibility, the usermod still accepts the legacy `Serial Events` section name when reading existing config.
 
 ## Required Core Changes
 

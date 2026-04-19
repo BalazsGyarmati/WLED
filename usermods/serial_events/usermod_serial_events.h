@@ -5,6 +5,7 @@
 class SerialEventsUsermod : public Usermod {
   private:
     static const char _name[];
+    static const char _legacyName[];
     static const char _enabled[];
     static const char _timestamp[];
 
@@ -214,6 +215,7 @@ class SerialEventsUsermod : public Usermod {
     bool readFromConfig(JsonObject& root) override
     {
       JsonObject top = root[FPSTR(_name)];
+      if (top.isNull()) top = root[FPSTR(_legacyName)];
       bool configComplete = !top.isNull();
 
       configComplete &= getJsonValue(top[FPSTR(_enabled)], enabled, true);
@@ -228,6 +230,7 @@ class SerialEventsUsermod : public Usermod {
     }
 };
 
-const char SerialEventsUsermod::_name[] PROGMEM = "Serial Events";
+const char SerialEventsUsermod::_name[] PROGMEM = "SerialEvents";
+const char SerialEventsUsermod::_legacyName[] PROGMEM = "Serial Events";
 const char SerialEventsUsermod::_enabled[] PROGMEM = "enabled";
 const char SerialEventsUsermod::_timestamp[] PROGMEM = "timestamp";

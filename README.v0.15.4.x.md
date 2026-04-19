@@ -159,6 +159,9 @@ The usermod uses the Usermods settings/config section for:
 - `enabled`
 - `timestamp`
 
+The config section name is `SerialEvents`.
+For backward compatibility, the usermod also reads the legacy `Serial Events` section name from existing config.
+
 ### `wled00/button.cpp` and related minimal plumbing
 
 The core changes were kept intentionally small:
