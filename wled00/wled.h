@@ -605,6 +605,7 @@ WLED_GLOBAL byte whiteLast           _INIT(128);           // white channel befo
 WLED_GLOBAL int8_t btnPin[WLED_MAX_BUTTONS]                   _INIT({BTNPIN});
 WLED_GLOBAL byte buttonType[WLED_MAX_BUTTONS]                 _INIT({BTNTYPE});
 WLED_GLOBAL bool buttonPublishMqtt                            _INIT(false);
+WLED_GLOBAL bool buttonPublishMqttTimestamp                   _INIT(false);
 WLED_GLOBAL bool buttonPressedBefore[WLED_MAX_BUTTONS]        _INIT({false});
 WLED_GLOBAL bool buttonLongPressed[WLED_MAX_BUTTONS]          _INIT({false});
 WLED_GLOBAL unsigned long buttonPressedTime[WLED_MAX_BUTTONS] _INIT({0});

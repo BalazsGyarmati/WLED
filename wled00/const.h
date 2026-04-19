@@ -203,6 +203,14 @@
 #define USERMOD_ID_LD2410                52     //Usermod "usermod_ld2410.h"
 #define USERMOD_ID_POV_DISPLAY           53     //Usermod "usermod_pov_display.h"
 #define USERMOD_ID_PIXELS_DICE_TRAY      54     //Usermod "pixels_dice_tray.h"
+#define USERMOD_ID_SERIAL_EVENTS         55     //Usermod "usermod_serial_events.h"
+
+//Button event actions
+#define BUTTON_ACTION_SHORT               0
+#define BUTTON_ACTION_LONG                1
+#define BUTTON_ACTION_DOUBLE              2
+#define BUTTON_ACTION_ON                  3
+#define BUTTON_ACTION_OFF                 4
 
 //Access point behavior
 #define AP_BEHAVIOR_BOOT_NO_CONN          0     //Open AP when no connection after boot

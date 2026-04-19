@@ -49,6 +49,7 @@ bool UsermodManager::onEspNowMessage(uint8_t* sender, uint8_t* payload, uint8_t 
 #endif
 void UsermodManager::onUpdateBegin(bool init) { for (unsigned i = 0; i < numMods; i++) ums[i]->onUpdateBegin(init); } // notify usermods that update is to begin
 void UsermodManager::onStateChange(uint8_t mode) { for (unsigned i = 0; i < numMods; i++) ums[i]->onStateChange(mode); } // notify usermods that WLED state changed
+void UsermodManager::onButtonEvent(uint8_t buttonId, uint8_t action) { for (unsigned i = 0; i < numMods; i++) ums[i]->onButtonEvent(buttonId, action); }
 
 /*
  * Enables usermods to lookup another Usermod.

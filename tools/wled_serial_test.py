@@ -6,6 +6,7 @@ Examples:
   python3 tools/wled_serial_test.py -p /dev/ttyACM0 json --verbose
   python3 tools/wled_serial_test.py -p /dev/ttyUSB0 led-json
   python3 tools/wled_serial_test.py -p /dev/ttyUSB0 led-bin --hex
+  python3 tools/wled_serial_test.py -p /dev/ttyUSB0 listen --seconds 10
   python3 tools/wled_serial_test.py -p /dev/ttyACM0 baud 921600
   python3 tools/wled_serial_test.py -p /dev/ttyACM0 raw --text '{"on":true,"bri":64}'
 """
@@ -57,6 +58,14 @@ def parse_args() -> argparse.Namespace:
 
     led_bin_parser = subparsers.add_parser("led-bin", help="Request current LED data as TPM2 via 'L'")
     led_bin_parser.add_argument("--hex", action="store_true", help="Print binary response as hex")
+
+    listen_parser = subparsers.add_parser("listen", help="Listen for spontaneous serial events")
+    listen_parser.add_argument(
+        "--seconds", type=float, default=10.0, help="How long to listen before exiting"
+    )
+    listen_parser.add_argument(
+        "--max-bytes", type=int, default=65536, help="Maximum number of bytes to read"
+    )
 
     baud_parser = subparsers.add_parser("baud", help="Temporarily switch WLED to a supported baud rate")
     baud_parser.add_argument("new_baud", type=int, choices=sorted(BAUD_MAP.keys()))
@@ -230,6 +239,12 @@ def main() -> int:
                 print(hexdump(response))
             else:
                 sys.stdout.buffer.write(response)
+            return 0
+
+        if args.command == "listen":
+            response = port.read_until_quiet(timeout=args.seconds, max_bytes=args.max_bytes, quiet_gap=args.seconds)
+            if response:
+                print_text_response(response)
             return 0
 
         if args.command == "baud":

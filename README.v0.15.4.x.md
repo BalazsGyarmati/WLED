@@ -4,12 +4,14 @@ This document describes the local changes prepared for the `v0.15.4.x` branch an
 
 ## Summary
 
-The current change set contains four repository-level changes:
+The current change set contains six repository-level changes:
 
 1. `platformio_override.ini`
 2. `tools/wled_serial_test.py`
 3. `wled00/data/settings_sync.htm`
-4. `.gitignore`
+4. `usermods/serial_events/`
+5. `wled00/button.cpp` and related minimal button-event plumbing
+6. `.gitignore`
 
 ## Why These Changes Were Added
 
@@ -43,6 +45,85 @@ The script uses only Python standard library modules, so no extra Python package
 The serial baud-rate selector now includes `9600`.
 
 This was added so low-speed control commands can be sent more safely over longer cables, where lower baud rates can be more reliable than high-speed serial communication.
+
+The MQTT section also includes a new checkbox:
+
+- `Publish timestamped button events`
+
+When enabled, WLED publishes an additional MQTT message for each button event on a new topic that does not overlap with the stock WLED MQTT button topic layout:
+
+- `<mqttDeviceTopic>/button_ts/<id>`
+- `<mqttDeviceTopic>/motion_ts/<id>` for PIR-style motion inputs
+
+Payload format:
+
+```txt
+<unix_timestamp>|<action>
+```
+
+Examples:
+
+```txt
+1713545145|S
+1713545148|L
+1713545152|D
+1713545158|ON
+1713545162|OFF
+```
+
+Action codes:
+
+- `S` = short press
+- `L` = long press
+- `D` = double press
+- `ON` = switch on
+- `OFF` = switch off
+
+If WLED does not yet have valid network time, the timestamp is `0`.
+
+### `usermods/serial_events/`
+
+This branch adds a dedicated `Serial Events` usermod for compact serial event reporting.
+
+The usermod emits one event per line:
+
+```txt
+EV|<timestamp>|<code>|<value1>[|<value2>]
+```
+
+Examples:
+
+```txt
+EV|1713545123|ONL|1
+EV|1713545128|PWR|1
+EV|1713545130|BRI|128
+EV|1713545135|FX|23
+EV|1713545136|PAL|5
+EV|1713545137|SPD|200
+EV|1713545138|INT|90
+EV|1713545140|PST|12
+EV|1713545145|BTN|1|S
+```
+
+The usermod is enabled in `platformio_override.ini` for the local UART-focused environment:
+
+```ini
+-D USERMOD_SERIAL_EVENTS
+```
+
+The usermod uses the Usermods settings/config section for:
+
+- `enabled`
+- `timestamp`
+
+### `wled00/button.cpp` and related minimal plumbing
+
+The core changes were kept intentionally small:
+
+- a new optional MQTT publish path for timestamped button events
+- a new usermod callback so usermods can receive `buttonId + action` directly
+
+This makes the serial usermod possible without rewriting the button handling logic.
 
 ### `.gitignore`
 
@@ -118,6 +199,45 @@ python3 tools/wled_serial_test.py -p /dev/ttyUSB0 --baud 9600 raw --text '{"on":
 ```
 
 This is the recommended way to verify long-cable control-command communication after selecting `9600` in the Sync settings page.
+
+### 8. Listen for compact serial event lines
+
+After enabling the `Serial Events` usermod and flashing the firmware, you can listen for spontaneous events:
+
+```sh
+python3 tools/wled_serial_test.py -p /dev/ttyUSB0 --baud 9600 listen --seconds 10
+```
+
+Trigger a few actions in WLED while the script is listening, for example:
+
+- toggle power
+- change brightness
+- change effect or palette
+- press configured buttons
+
+Expected output format:
+
+```txt
+EV|1713545123|ONL|1
+EV|1713545128|PWR|1
+EV|1713545145|BTN|1|S
+```
+
+### 9. Verify timestamped MQTT button topics
+
+Enable:
+
+- `Publish on button press`
+- `Publish timestamped button events`
+
+Then subscribe to:
+
+```txt
+<mqttDeviceTopic>/button_ts/#
+<mqttDeviceTopic>/motion_ts/#
+```
+
+Press a button or trigger a switch/PIR input and confirm that both the legacy button topic and the new timestamped topic are published.
 
 ## Recommended Git Flow From Detached HEAD
 

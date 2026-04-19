@@ -316,6 +316,7 @@ bool deserializeConfig(JsonObject doc, bool fromFS) {
   }
 
   CJSON(buttonPublishMqtt,btn_obj["mqtt"]);
+  CJSON(buttonPublishMqttTimestamp,btn_obj["mqttTs"]);
 
   #ifndef WLED_DISABLE_INFRARED
   int hw_ir_pin = hw["ir"]["pin"] | -2; // 4
@@ -894,6 +895,7 @@ void serializeConfig() {
 
   hw_btn[F("tt")] = touchThreshold;
   hw_btn["mqtt"] = buttonPublishMqtt;
+  hw_btn["mqttTs"] = buttonPublishMqttTimestamp;
 
   JsonObject hw_ir = hw.createNestedObject("ir");
   #ifndef WLED_DISABLE_INFRARED

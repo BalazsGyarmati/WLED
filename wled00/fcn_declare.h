@@ -323,6 +323,7 @@ class Usermod {
     virtual bool onEspNowMessage(uint8_t* sender, uint8_t* payload, uint8_t len) { return false; } // fired upon ESP-NOW message received
     virtual void onUpdateBegin(bool) {}                                      // fired prior to and after unsuccessful firmware update
     virtual void onStateChange(uint8_t mode) {}                              // fired upon WLED state change
+    virtual void onButtonEvent(uint8_t buttonId, uint8_t action) {}          // fired on physical button/switch/PIR events
     virtual uint16_t getId() {return USERMOD_ID_UNSPECIFIED;}
 
   // API shims
@@ -367,6 +368,7 @@ class UsermodManager {
 #endif
     static void onUpdateBegin(bool);
     static void onStateChange(uint8_t);
+    static void onButtonEvent(uint8_t buttonId, uint8_t action);
     static bool add(Usermod* um);
     static Usermod* lookup(uint16_t mod_id);
     static inline byte getModCount() {return numMods;};

@@ -13,7 +13,36 @@
 #define WLED_LONG_BRI_STEPS          16 // how much to increase/decrease the brightness with each long press repetition
 
 static const char _mqtt_topic_button[] PROGMEM = "%s/button/%d";  // optimize flash usage
+static const char _mqtt_topic_button_ts[] PROGMEM = "%s/button_ts/%d";
+static const char _mqtt_topic_motion_ts[] PROGMEM = "%s/motion_ts/%d";
 static bool buttonBriDirection = false; // true: increase brightness, false: decrease brightness
+
+static const char* buttonActionToCode(uint8_t action)
+{
+  switch (action) {
+    case BUTTON_ACTION_SHORT:  return "S";
+    case BUTTON_ACTION_LONG:   return "L";
+    case BUTTON_ACTION_DOUBLE: return "D";
+    case BUTTON_ACTION_ON:     return "ON";
+    case BUTTON_ACTION_OFF:    return "OFF";
+    default:                   return "?";
+  }
+}
+
+#ifndef WLED_DISABLE_MQTT
+static void publishButtonTimestampedMqtt(uint8_t b, uint8_t action, bool isMotion = false)
+{
+  if (!buttonPublishMqttTimestamp || !WLED_MQTT_CONNECTED) return;
+
+  char topic[64];
+  char payload[20];
+  uint32_t ts = (toki.getTimeSource() >= TOKI_TS_SEC) ? toki.second() : 0;
+  snprintf_P(payload, sizeof(payload), PSTR("%lu|%s"), ts, buttonActionToCode(action));
+  if (isMotion) sprintf_P(topic, _mqtt_topic_motion_ts, mqttDeviceTopic, (int)b);
+  else sprintf_P(topic, _mqtt_topic_button_ts, mqttDeviceTopic, (int)b);
+  mqtt->publish(topic, 0, false, payload);
+}
+#endif
 
 void shortPressAction(uint8_t b)
 {
@@ -33,7 +62,9 @@ void shortPressAction(uint8_t b)
     sprintf_P(subuf, _mqtt_topic_button, mqttDeviceTopic, (int)b);
     mqtt->publish(subuf, 0, false, "short");
   }
+  publishButtonTimestampedMqtt(b, BUTTON_ACTION_SHORT);
 #endif
+  UsermodManager::onButtonEvent(b, BUTTON_ACTION_SHORT);
 }
 
 void longPressAction(uint8_t b)
@@ -66,7 +97,9 @@ void longPressAction(uint8_t b)
     sprintf_P(subuf, _mqtt_topic_button, mqttDeviceTopic, (int)b);
     mqtt->publish(subuf, 0, false, "long");
   }
+  publishButtonTimestampedMqtt(b, BUTTON_ACTION_LONG);
 #endif
+  UsermodManager::onButtonEvent(b, BUTTON_ACTION_LONG);
 }
 
 void doublePressAction(uint8_t b)
@@ -87,7 +120,9 @@ void doublePressAction(uint8_t b)
     sprintf_P(subuf, _mqtt_topic_button, mqttDeviceTopic, (int)b);
     mqtt->publish(subuf, 0, false, "double");
   }
+  publishButtonTimestampedMqtt(b, BUTTON_ACTION_DOUBLE);
 #endif
+  UsermodManager::onButtonEvent(b, BUTTON_ACTION_DOUBLE);
 }
 
 bool isButtonPressed(uint8_t i)
@@ -156,7 +191,9 @@ void handleSwitch(uint8_t b)
       else sprintf_P(subuf, _mqtt_topic_button, mqttDeviceTopic, (int)b);
       mqtt->publish(subuf, 0, false, !buttonPressedBefore[b] ? "off" : "on");
     }
+    publishButtonTimestampedMqtt(b, !buttonPressedBefore[b] ? BUTTON_ACTION_OFF : BUTTON_ACTION_ON, buttonType[b] == BTN_TYPE_PIR_SENSOR);
 #endif
+    UsermodManager::onButtonEvent(b, !buttonPressedBefore[b] ? BUTTON_ACTION_OFF : BUTTON_ACTION_ON);
 
     buttonLongPressed[b] = buttonPressedBefore[b]; //save the last "long term" switch state
   }

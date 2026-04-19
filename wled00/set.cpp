@@ -440,6 +440,7 @@ void handleSettingsSet(AsyncWebServerRequest *request, byte subPage)
     strlcpy(mqttDeviceTopic, request->arg(F("MD")).c_str(), MQTT_MAX_TOPIC_LEN+1);
     strlcpy(mqttGroupTopic, request->arg(F("MG")).c_str(), MQTT_MAX_TOPIC_LEN+1);
     buttonPublishMqtt = request->hasArg(F("BM"));
+    buttonPublishMqttTimestamp = request->hasArg(F("BTM"));
     retainMqttMsg = request->hasArg(F("RT"));
     #endif
 
