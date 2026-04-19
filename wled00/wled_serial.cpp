@@ -46,12 +46,7 @@ static void sendInfoJson()
   String macAddress = WiFi.macAddress();
   macAddress.toUpperCase();
 
-  String deviceId = macAddress;
-  deviceId.replace(":", "");
-
   doc["ip"] = ipAddress.toString();
-  doc["device_id"] = deviceId;
-  doc["name"] = serverDescription;
   doc["hostname"] = cmDNS;
   doc["mac"] = macAddress;
   doc["mqtt_device_topic"] = mqttDeviceTopic;

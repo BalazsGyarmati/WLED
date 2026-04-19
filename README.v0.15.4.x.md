@@ -232,8 +232,6 @@ Example response:
 ```json
 {
   "ip": "192.168.1.42",
-  "device_id": "ABCDEF010203",
-  "name": "Kitchen Strip",
   "hostname": "wled-kitchen",
   "mac": "AB:CD:EF:01:02:03",
   "mqtt_device_topic": "wled/kitchen",
@@ -249,8 +247,6 @@ Example response:
 Field meanings:
 
 - `ip`: current local IP address
-- `device_id`: uppercase MAC-derived device ID without separators
-- `name`: WLED device name
 - `hostname`: current mDNS/hostname value
 - `mac`: uppercase MAC address with `:` separators
 - `mqtt_device_topic`: configured MQTT device topic
